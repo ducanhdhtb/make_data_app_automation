@@ -3,6 +3,8 @@ package com.nearmatch.tests.ui;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.AriaRole;
 import com.nearmatch.framework.ui.BaseUiTest;
+import com.nearmatch.framework.ui.pom.pages.ChatsPage;
+import com.nearmatch.framework.ui.pom.pages.MatchesPage;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -17,18 +19,18 @@ public class ChatsTest extends BaseUiTest {
 
   @Test
   void chatsPageLoads() {
-    page.navigate("/chats");
-    page.waitForSelector(".page, .container", new Page.WaitForSelectorOptions().setTimeout(10_000));
-    assertTrue(page.url().contains("/chats"));
+    ChatsPage chats = new ChatsPage(page).open();
+    chats.container().waitFor(new com.microsoft.playwright.Locator.WaitForOptions().setTimeout(10_000));
+    assertTrue(chats.url().contains("/chats"));
   }
 
   @Test
   void chatsPageShowsConversationListOrEmptyState() {
-    page.navigate("/chats");
+    ChatsPage chats = new ChatsPage(page).open();
     page.waitForLoadState();
 
-    boolean hasConversations = page.locator(".chat-list-item").count() > 0;
-    boolean isEmpty = page.locator("text=Chưa có hội thoại nào").isVisible();
+    boolean hasConversations = chats.conversationItems().count() > 0;
+    boolean isEmpty = chats.emptyState().isVisible();
 
     assertTrue(hasConversations || isEmpty,
       "Chats page should show conversations or empty state");
@@ -36,40 +38,30 @@ public class ChatsTest extends BaseUiTest {
 
   @Test
   void chatsPageRedirectsToLoginWhenNotAuthenticated() {
-    var freshContext = browser.newContext(
-      new com.microsoft.playwright.Browser.NewContextOptions().setBaseURL(baseUrl)
-    );
-    freshContext.addInitScript("() => { localStorage.clear(); }");
-    var freshPage = freshContext.newPage();
-    freshPage.setDefaultTimeout(15_000);
-    freshPage.setDefaultNavigationTimeout(30_000);
-
-    freshPage.navigate("/chats");
-    freshPage.waitForURL("**/auth/login");
-    assertTrue(freshPage.url().contains("/auth/login"));
-
-    freshContext.close();
+    try (var session = freshSession()) {
+      session.page().navigate("/chats");
+      session.page().waitForURL("**/auth/login");
+      assertTrue(session.page().url().contains("/auth/login"));
+    }
   }
 
   @Test
   void selectConversationDisplaysMessages() {
-    page.navigate("/chats");
+    ChatsPage chats = new ChatsPage(page).open();
     page.waitForLoadState();
 
-    int conversationCount = page.locator(".chat-list-item").count();
+    int conversationCount = chats.conversationItems().count();
     if (conversationCount == 0) {
       // No conversations, skip test
       return;
     }
 
-    // Click first conversation
-    page.locator(".chat-list-item").first().click();
-    page.waitForLoadState();
+    chats.selectFirstConversationIfAny();
 
     // Should show chat box with messages or empty state
-    boolean hasChatBox = page.locator(".chat-box").isVisible();
-    boolean hasMessages = page.locator(".chat-bubble").count() > 0;
-    boolean isEmpty = page.locator("text=Chưa có tin nhắn nào").isVisible();
+    boolean hasChatBox = chats.chatBox().isVisible();
+    boolean hasMessages = chats.chatBubbles().count() > 0;
+    boolean isEmpty = chats.messageEmptyState().isVisible();
 
     assertTrue(hasChatBox && (hasMessages || isEmpty),
       "Should display chat box with messages or empty state");
@@ -77,29 +69,25 @@ public class ChatsTest extends BaseUiTest {
 
   @Test
   void sendTextMessageSuccessfully() {
-    page.navigate("/chats");
+    ChatsPage chats = new ChatsPage(page).open();
     page.waitForLoadState();
 
-    int conversationCount = page.locator(".chat-list-item").count();
+    int conversationCount = chats.conversationItems().count();
     if (conversationCount == 0) {
       return;
     }
 
-    // Select first conversation
-    page.locator(".chat-list-item").first().click();
-    page.waitForLoadState();
+    chats.selectFirstConversationIfAny();
 
     // Type and send message
     String testMessage = "Test message " + System.currentTimeMillis();
-    page.locator("input[placeholder='Nhập tin nhắn...']").fill(testMessage);
-    page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Gửi")).click();
+    chats.sendMessage(testMessage);
 
     // Wait for message to appear
-    page.waitForSelector(".chat-bubble:has-text('" + testMessage + "')", 
-      new Page.WaitForSelectorOptions().setTimeout(5_000));
+    chats.messageBubbleContaining(testMessage).waitFor(new com.microsoft.playwright.Locator.WaitForOptions().setTimeout(5_000));
 
     // Verify message appears in chat
-    assertTrue(page.locator(".chat-bubble:has-text('" + testMessage + "')").isVisible(),
+    assertTrue(chats.messageBubbleContaining(testMessage).isVisible(),
       "Sent message should appear in chat");
   }
 
@@ -131,241 +119,230 @@ public class ChatsTest extends BaseUiTest {
 
   @Test
   void replyToMessageSuccessfully() {
-    page.navigate("/chats");
+    ChatsPage chats = new ChatsPage(page).open();
     page.waitForLoadState();
 
-    int conversationCount = page.locator(".chat-list-item").count();
+    int conversationCount = chats.conversationItems().count();
     if (conversationCount == 0) {
       return;
     }
 
-    page.locator(".chat-list-item").first().click();
-    page.waitForLoadState();
+    chats.selectFirstConversationIfAny();
 
-    int messageCount = page.locator(".chat-bubble").count();
+    int messageCount = chats.chatBubbles().count();
     if (messageCount == 0) {
       return;
     }
 
     // Click reply button on first message
-    page.locator(".chat-bubble").first().hover();
-    page.locator(".chat-bubble").first().locator("button:has-text('Reply')").click();
+    chats.hoverFirstMessageIfAny();
+    chats.replyButtonOnFirstMessage().click();
 
     // Verify reply quote appears
-    assertTrue(page.locator(".composer-quote").isVisible(),
+    assertTrue(chats.composerQuote().isVisible(),
       "Reply quote should appear in composer");
 
     // Send reply
     String replyText = "Reply test " + System.currentTimeMillis();
-    page.locator("input[placeholder='Nhập tin nhắn...']").fill(replyText);
-    page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Gửi")).click();
+    chats.sendMessage(replyText);
 
     // Verify reply message appears
-    page.waitForSelector(".chat-bubble:has-text('" + replyText + "')", 
-      new Page.WaitForSelectorOptions().setTimeout(5_000));
-    assertTrue(page.locator(".chat-bubble:has-text('" + replyText + "')").isVisible(),
+    chats.messageBubbleContaining(replyText).waitFor(new com.microsoft.playwright.Locator.WaitForOptions().setTimeout(5_000));
+    assertTrue(chats.messageBubbleContaining(replyText).isVisible(),
       "Reply message should appear in chat");
   }
 
   @Test
   void addReactionToMessage() {
-    page.navigate("/chats");
+    ChatsPage chats = new ChatsPage(page).open();
     page.waitForLoadState();
 
-    int conversationCount = page.locator(".chat-list-item").count();
+    int conversationCount = chats.conversationItems().count();
     if (conversationCount == 0) {
       return;
     }
 
-    page.locator(".chat-list-item").first().click();
-    page.waitForLoadState();
+    chats.selectFirstConversationIfAny();
 
-    int messageCount = page.locator(".chat-bubble").count();
+    int messageCount = chats.chatBubbles().count();
     if (messageCount == 0) {
       return;
     }
 
     // Hover over message and click reaction button
-    page.locator(".chat-bubble").first().hover();
-    page.locator(".chat-bubble").first().locator("button:has-text('❤️')").click();
+    chats.hoverFirstMessageIfAny();
+    chats.heartReactionButtonOnFirstMessage().click();
 
     // Wait for reaction to appear
-    page.waitForSelector(".reaction-chip", new Page.WaitForSelectorOptions().setTimeout(3_000));
+    chats.reactionChips().first().waitFor(new com.microsoft.playwright.Locator.WaitForOptions().setTimeout(3_000));
 
     // Verify reaction appears
-    assertTrue(page.locator(".reaction-chip").count() > 0,
+    assertTrue(chats.reactionChips().count() > 0,
       "Reaction should appear on message");
   }
 
   @Test
   void searchMessagesInConversation() {
-    page.navigate("/chats");
+    ChatsPage chats = new ChatsPage(page).open();
     page.waitForLoadState();
 
-    int conversationCount = page.locator(".chat-list-item").count();
+    int conversationCount = chats.conversationItems().count();
     if (conversationCount == 0) {
       return;
     }
 
-    page.locator(".chat-list-item").first().click();
-    page.waitForLoadState();
+    chats.selectFirstConversationIfAny();
 
     // Use search input
-    page.locator("input[placeholder='Tìm trong hội thoại...']").fill("test");
-    page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Tìm")).click();
+    chats.conversationSearchInput().fill("test");
+    chats.conversationSearchButton().click();
 
     page.waitForLoadState();
 
     // Verify search was executed (page should still be on chats)
-    assertTrue(page.url().contains("/chats"),
+    assertTrue(chats.url().contains("/chats"),
       "Should remain on chats page after search");
   }
 
   @Test
   void typingIndicatorAppears() {
-    page.navigate("/chats");
+    ChatsPage chats = new ChatsPage(page).open();
     page.waitForLoadState();
 
-    int conversationCount = page.locator(".chat-list-item").count();
+    int conversationCount = chats.conversationItems().count();
     if (conversationCount == 0) {
       return;
     }
 
-    page.locator(".chat-list-item").first().click();
-    page.waitForLoadState();
+    chats.selectFirstConversationIfAny();
 
     // Start typing
-    page.locator("input[placeholder='Nhập tin nhắn...']").fill("T");
+    chats.messageInput().fill("T");
 
     // Typing indicator should appear (may take a moment)
     page.waitForTimeout(500);
 
     // Verify page is still functional
-    assertTrue(page.url().contains("/chats"),
+    assertTrue(chats.url().contains("/chats"),
       "Should remain on chats page while typing");
   }
 
   @Test
   void uploadImageMessage() {
-    page.navigate("/chats");
+    ChatsPage chats = new ChatsPage(page).open();
     page.waitForLoadState();
 
-    int conversationCount = page.locator(".chat-list-item").count();
+    int conversationCount = chats.conversationItems().count();
     if (conversationCount == 0) {
       return;
     }
 
-    page.locator(".chat-list-item").first().click();
-    page.waitForLoadState();
+    chats.selectFirstConversationIfAny();
 
     // Create a simple test image file
     java.nio.file.Path imagePath = createTestImageFile();
 
     // Upload image
-    page.locator("input[type='file'][accept='image/*']").setInputFiles(imagePath);
+    chats.imageUploadInput().setInputFiles(imagePath);
 
     // Wait for preview to appear
-    page.waitForSelector(".composer-preview", new Page.WaitForSelectorOptions().setTimeout(3_000));
+    chats.composerPreview().waitFor(new com.microsoft.playwright.Locator.WaitForOptions().setTimeout(3_000));
 
     // Verify preview is shown
-    assertTrue(page.locator(".composer-preview").isVisible(),
+    assertTrue(chats.composerPreview().isVisible(),
       "Image preview should appear");
 
     // Send image
-    page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Gửi")).click();
+    chats.sendButton().click();
 
     // Wait for image message to appear
-    page.waitForSelector(".chat-image", new Page.WaitForSelectorOptions().setTimeout(5_000));
+    chats.chatImages().first().waitFor(new com.microsoft.playwright.Locator.WaitForOptions().setTimeout(5_000));
 
-    assertTrue(page.locator(".chat-image").count() > 0,
+    assertTrue(chats.chatImages().count() > 0,
       "Image message should appear in chat");
   }
 
   @Test
   void conversationListUpdatesAfterNewMessage() {
-    page.navigate("/chats");
+    ChatsPage chats = new ChatsPage(page).open();
     page.waitForLoadState();
 
-    int conversationCount = page.locator(".chat-list-item").count();
+    int conversationCount = chats.conversationItems().count();
     if (conversationCount == 0) {
       return;
     }
 
     // Get first conversation's text before sending message
-    String firstConvTextBefore = page.locator(".chat-list-item").first().locator(".muted").textContent();
+    String firstConvTextBefore = chats.firstConversationMutedPreview().textContent();
 
-    page.locator(".chat-list-item").first().click();
-    page.waitForLoadState();
+    chats.selectFirstConversationIfAny();
 
     // Send message
     String testMessage = "Update test " + System.currentTimeMillis();
-    page.locator("input[placeholder='Nhập tin nhắn...']").fill(testMessage);
-    page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Gửi")).click();
+    chats.sendMessage(testMessage);
 
     // Wait for message to appear
-    page.waitForSelector(".chat-bubble:has-text('" + testMessage + "')", 
-      new Page.WaitForSelectorOptions().setTimeout(5_000));
+    chats.messageBubbleContaining(testMessage).waitFor(new com.microsoft.playwright.Locator.WaitForOptions().setTimeout(5_000));
 
     // Verify conversation list updated with new message preview
-    String firstConvTextAfter = page.locator(".chat-list-item").first().locator(".muted").textContent();
+    String firstConvTextAfter = chats.firstConversationMutedPreview().textContent();
     assertNotEquals(firstConvTextBefore, firstConvTextAfter,
       "Conversation list should update with new message preview");
   }
 
   @Test
   void openChatFromMatchesNavigatesToChats() {
-    page.navigate("/matches");
-    page.waitForSelector("h1:has-text('Matches của bạn')");
+    MatchesPage matches = new MatchesPage(page).open();
+    matches.heading().waitFor();
 
-    boolean hasMatchCard = page.locator("button:has-text('Nhắn tin')").count() > 0;
+    boolean hasMatchCard = matches.messageButtons().count() > 0;
     if (!hasMatchCard) {
       assertTrue(page.locator("text=Chưa có match nào").isVisible());
       return;
     }
 
-    page.locator("button:has-text('Nhắn tin')").first().click();
+    matches.messageButtons().first().click();
     page.waitForURL("**/chats**");
     assertTrue(page.url().contains("/chats"));
   }
 
   @Test
   void socketConnectionStatusDisplayed() {
-    page.navigate("/chats");
+    ChatsPage chats = new ChatsPage(page).open();
     page.waitForLoadState();
 
     // Check for socket status indicator
-    boolean hasStatus = page.locator("text=/Trạng thái realtime|connected|disconnected/").count() > 0;
-    assertTrue(hasStatus || page.locator(".inline-status").count() > 0,
+    boolean hasStatus = chats.statusText().count() > 0;
+    assertTrue(hasStatus || chats.inlineStatus().count() > 0,
       "Socket connection status should be displayed");
   }
 
   @Test
   void clearSearchFiltersMessages() {
-    page.navigate("/chats");
+    ChatsPage chats = new ChatsPage(page).open();
     page.waitForLoadState();
 
-    int conversationCount = page.locator(".chat-list-item").count();
+    int conversationCount = chats.conversationItems().count();
     if (conversationCount == 0) {
       return;
     }
 
-    page.locator(".chat-list-item").first().click();
-    page.waitForLoadState();
+    chats.selectFirstConversationIfAny();
 
     // Search for something
-    page.locator("input[placeholder='Tìm trong hội thoại...']").fill("test");
-    page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Tìm")).click();
+    chats.conversationSearchInput().fill("test");
+    chats.conversationSearchButton().click();
 
     page.waitForLoadState();
 
     // Clear search
-    boolean hasClearButton = page.locator("button:has-text('Bỏ lọc')").count() > 0;
+    boolean hasClearButton = chats.clearSearchButton().count() > 0;
     if (hasClearButton) {
-      page.locator("button:has-text('Bỏ lọc')").click();
+      chats.clearSearchButton().click();
       page.waitForLoadState();
     }
 
-    assertTrue(page.url().contains("/chats"),
+    assertTrue(chats.url().contains("/chats"),
       "Should remain on chats page after clearing search");
   }
 

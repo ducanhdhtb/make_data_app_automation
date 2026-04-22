@@ -1,8 +1,7 @@
 package com.nearmatch.tests.ui;
 
-import com.microsoft.playwright.Page;
-import com.microsoft.playwright.options.AriaRole;
 import com.nearmatch.framework.ui.BaseUiTest;
+import com.nearmatch.framework.ui.pom.pages.ProfileEditPage;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -17,50 +16,46 @@ public class ProfileEditTest extends BaseUiTest {
 
   @Test
   void editProfilePageRendersHeading() {
-    page.navigate("/profile/edit");
-    assertTrue(page.locator("h1:has-text('Hồ sơ của tôi')").isVisible());
+    ProfileEditPage profile = new ProfileEditPage(page).open();
+    assertTrue(profile.heading().isVisible());
   }
 
   @Test
   void editProfilePageLoadsCurrentUserData() {
-    page.navigate("/profile/edit");
-
-    // Wait for the API to load and populate the form (loading text disappears)
-    page.waitForFunction("() => !document.querySelector('p')?.textContent?.includes('Đang tải hồ sơ')");
-    page.waitForSelector(".field:has(label:has-text('Tên hiển thị')) input");
+    ProfileEditPage profile = new ProfileEditPage(page).open().waitForProfileLoaded();
 
     // Give React a moment to set the input value
     page.waitForTimeout(500);
 
-    var displayNameInput = page.locator(".field:has(label:has-text('Tên hiển thị')) input");
+    var displayNameInput = profile.displayNameInput();
     // Value should be non-empty after data loads
     assertTrue(!displayNameInput.inputValue().isEmpty(), "Display name should be populated");
   }
 
   @Test
   void editProfilePageHasAllFormFields() {
-    page.navigate("/profile/edit");
-    page.waitForSelector(".field:has(label:has-text('Tên hiển thị')) input");
+    ProfileEditPage profile = new ProfileEditPage(page).open();
+    profile.displayNameInput().waitFor();
 
-    assertTrue(page.locator(".field:has(label:has-text('Tên hiển thị')) input").isVisible());
-    assertTrue(page.locator(".field:has(label:has-text('Nghề nghiệp')) input").isVisible());
-    assertTrue(page.locator(".field:has(label:has-text('Thành phố')) input").isVisible());
-    assertTrue(page.locator(".field:has(label:has-text('Bio')) textarea").isVisible());
-    assertTrue(page.locator(".field:has(label:has-text('Sở thích')) input").isVisible());
-    assertTrue(page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Lưu thay đổi")).isVisible());
+    assertTrue(profile.displayNameInput().isVisible());
+    assertTrue(profile.jobTitleInput().isVisible());
+    assertTrue(profile.cityInput().isVisible());
+    assertTrue(profile.bioTextarea().isVisible());
+    assertTrue(profile.interestsInput().isVisible());
+    assertTrue(profile.saveButton().isVisible());
   }
 
   @Test
   void saveProfileShowsSuccessMessage() {
-    page.navigate("/profile/edit");
+    ProfileEditPage profile = new ProfileEditPage(page).open();
 
     // Wait for form to load
-    page.waitForFunction("() => !document.querySelector('p')?.textContent?.includes('Đang tải hồ sơ')");
+    profile.waitForProfileLoaded();
     page.waitForTimeout(500);
 
     // Update city field and save
-    page.locator(".field:has(label:has-text('Thành phố')) input").fill("TP.HCM");
-    page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Lưu thay đổi")).click();
+    profile.cityInput().fill("TP.HCM");
+    profile.saveButton().click();
 
     // Expect a green success message — wait for it to appear
     page.waitForSelector("p[style*='color']");
@@ -73,25 +68,17 @@ public class ProfileEditTest extends BaseUiTest {
 
   @Test
   void avatarUploadInputIsPresent() {
-    page.navigate("/profile/edit");
-    page.waitForSelector("input[type='file'][accept='image/*']");
-    assertTrue(page.locator("input[type='file'][accept='image/*']").isVisible());
+    ProfileEditPage profile = new ProfileEditPage(page).open();
+    profile.avatarFileInput().waitFor();
+    assertTrue(profile.avatarFileInput().isVisible());
   }
 
   @Test
   void editProfileRedirectsToLoginWhenNotAuthenticated() {
-    var freshContext = browser.newContext(
-      new com.microsoft.playwright.Browser.NewContextOptions().setBaseURL(baseUrl)
-    );
-    freshContext.addInitScript("() => { localStorage.clear(); }");
-    var freshPage = freshContext.newPage();
-    freshPage.setDefaultTimeout(15_000);
-    freshPage.setDefaultNavigationTimeout(30_000);
-
-    freshPage.navigate("/profile/edit");
-    freshPage.waitForURL("**/auth/login");
-    assertTrue(freshPage.url().contains("/auth/login"));
-
-    freshContext.close();
+    try (var session = freshSession()) {
+      session.page().navigate("/profile/edit");
+      session.page().waitForURL("**/auth/login");
+      assertTrue(session.page().url().contains("/auth/login"));
+    }
   }
 }

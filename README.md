@@ -92,5 +92,6 @@ allure serve target/allure-results
 ## Project Layout
 
 - `src/test/java/com/nearmatch/framework/*`: reusable framework code (config, base fixtures)
+- `src/test/java/com/nearmatch/framework/ui/pom/*`: Page Object Model (POM) for UI tests
 - `src/test/java/com/nearmatch/tests/api/*`: API tests
 - `src/test/java/com/nearmatch/tests/ui/*`: UI tests

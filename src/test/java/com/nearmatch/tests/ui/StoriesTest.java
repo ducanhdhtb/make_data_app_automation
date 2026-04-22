@@ -1,8 +1,7 @@
 package com.nearmatch.tests.ui;
 
-import com.microsoft.playwright.Page;
-import com.microsoft.playwright.options.AriaRole;
 import com.nearmatch.framework.ui.BaseUiTest;
+import com.nearmatch.framework.ui.pom.pages.StoriesPage;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -17,36 +16,30 @@ public class StoriesTest extends BaseUiTest {
 
   @Test
   void storiesPageRendersHeading() {
-    page.navigate("/stories");
-    assertTrue(page.locator("h1:has-text('Story')").isVisible());
+    StoriesPage stories = new StoriesPage(page).open();
+    assertTrue(stories.heading().isVisible());
   }
 
   @Test
   void storiesPageShowsPostForm() {
-    page.navigate("/stories");
-    assertTrue(page.locator("h2:has-text('Đăng story mới')").isVisible());
-    assertTrue(page.locator(".field:has(label:has-text('Loại story')) select").isVisible());
-    assertTrue(page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Đăng story")).isVisible());
+    StoriesPage stories = new StoriesPage(page).open();
+    assertTrue(stories.postFormHeading().isVisible());
+    assertTrue(stories.storyTypeSelect().isVisible());
+    assertTrue(stories.postButton().isVisible());
   }
 
   @Test
   void storyTypeDropdownHasTextAndImageOptions() {
-    page.navigate("/stories");
-
-    var select = page.locator(".field:has(label:has-text('Loại story')) select");
+    StoriesPage stories = new StoriesPage(page).open();
+    var select = stories.storyTypeSelect();
     assertTrue(select.locator("option[value='text']").count() == 1);
     assertTrue(select.locator("option[value='image']").count() == 1);
   }
 
   @Test
   void postTextStoryShowsConfirmationOrError() {
-    page.navigate("/stories");
-
-    page.locator("textarea[placeholder='Hôm nay của bạn thế nào?']").fill("Test story từ E2E");
-    page.locator("input[placeholder='Viết caption ngắn']").fill("E2E caption");
-
-    page.onDialog(dialog -> dialog.accept());
-    page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Đăng story")).click();
+    StoriesPage stories = new StoriesPage(page).open();
+    stories.postTextStoryAcceptDialog("Test story từ E2E", "E2E caption");
 
     // After posting, either a success alert fires or the page stays on /stories
     assertTrue(page.url().contains("/stories"));
@@ -54,28 +47,19 @@ public class StoriesTest extends BaseUiTest {
 
   @Test
   void switchingToImageTypeShowsFileInput() {
-    page.navigate("/stories");
-
-    page.locator(".field:has(label:has-text('Loại story')) select").selectOption("image");
+    StoriesPage stories = new StoriesPage(page).open();
+    stories.storyTypeSelect().selectOption("image");
 
     // File input should appear when image type is selected
-    assertTrue(page.locator("input[type='file']").isVisible());
+    assertTrue(stories.fileInput().isVisible());
   }
 
   @Test
   void storiesPageRedirectsToLoginWhenNotAuthenticated() {
-    var freshContext = browser.newContext(
-      new com.microsoft.playwright.Browser.NewContextOptions().setBaseURL(baseUrl)
-    );
-    freshContext.addInitScript("() => { localStorage.clear(); }");
-    var freshPage = freshContext.newPage();
-    freshPage.setDefaultTimeout(15_000);
-    freshPage.setDefaultNavigationTimeout(30_000);
-
-    freshPage.navigate("/stories");
-    freshPage.waitForURL("**/auth/login");
-    assertTrue(freshPage.url().contains("/auth/login"));
-
-    freshContext.close();
+    try (var session = freshSession()) {
+      session.page().navigate("/stories");
+      session.page().waitForURL("**/auth/login");
+      assertTrue(session.page().url().contains("/auth/login"));
+    }
   }
 }

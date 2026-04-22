@@ -1,8 +1,8 @@
 package com.nearmatch.tests.ui;
 
-import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.AriaRole;
 import com.nearmatch.framework.ui.BaseUiTest;
+import com.nearmatch.framework.ui.pom.pages.DiscoverPage;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -18,61 +18,61 @@ public class DiscoverTest extends BaseUiTest {
 
   @Test
   void discoverPageShowsStorySection() {
-    assertTrue(page.locator("h3:has-text('Story đang hoạt động')").isVisible());
+    DiscoverPage discover = new DiscoverPage(page);
+    assertTrue(discover.storySectionTitle().isVisible());
   }
 
   @Test
   void discoverPageShowsFilterControls() {
+    DiscoverPage discover = new DiscoverPage(page);
     // Radius select
-    assertTrue(page.locator("select").first().isVisible());
+    assertTrue(discover.radiusSelect().isVisible());
     // Age inputs
-    assertTrue(page.locator("input[type='number']").first().isVisible());
+    assertTrue(discover.ageInputs().first().isVisible());
     // Filter button
-    assertTrue(page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Lọc")).isVisible());
+    assertTrue(discover.filterButton().isVisible());
   }
 
   @Test
   void discoverPageShowsUserCards() {
+    DiscoverPage discover = new DiscoverPage(page);
     // At least one user card with "Thả tim" button should be present
-    page.waitForSelector("button:has-text('Thả tim')");
-    assertTrue(page.locator("button:has-text('Thả tim')").first().isVisible());
+    discover.likeButtons().first().waitFor();
+    assertTrue(discover.likeButtons().first().isVisible());
   }
 
   @Test
   void discoverPageShowsViewProfileLink() {
+    DiscoverPage discover = new DiscoverPage(page);
     page.waitForSelector("a:has-text('Xem profile')");
-    assertTrue(page.locator("a:has-text('Xem profile')").first().isVisible());
+    assertTrue(discover.viewProfileLinks().first().isVisible());
   }
 
   @Test
   void filterByRadiusUpdatesResults() {
-    page.waitForSelector("button:has-text('Thả tim')");
-
-    // Change radius to 5km and apply filter
-    page.locator("select").first().selectOption("5");
-    page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Lọc")).click();
+    DiscoverPage discover = new DiscoverPage(page);
+    discover.applyRadiusFilter("5");
 
     // Page should still be on /discover after filtering
-    assertTrue(page.url().contains("/discover"));
+    assertTrue(discover.url().contains("/discover"));
   }
 
   @Test
   void bottomNavIsVisible() {
-    assertTrue(page.locator("a:has-text('Khám phá')").last().isVisible());
-    assertTrue(page.locator("a:has-text('Matches')").last().isVisible());
-    assertTrue(page.locator("a:has-text('Chats')").last().isVisible());
-    assertTrue(page.locator("a:has-text('Story')").last().isVisible());
+    DiscoverPage discover = new DiscoverPage(page);
+    assertTrue(discover.bottomNavLink("Khám phá").isVisible());
+    assertTrue(discover.bottomNavLink("Matches").isVisible());
+    assertTrue(discover.bottomNavLink("Chats").isVisible());
+    assertTrue(discover.bottomNavLink("Story").isVisible());
   }
 
   @Test
   void likeButtonSendsRequest() {
-    page.waitForSelector("button:has-text('Thả tim')");
-
     // Click the first "Thả tim" button and expect an alert (match or like confirmation)
-    page.onDialog(dialog -> dialog.accept());
-    page.locator("button:has-text('Thả tim')").first().click();
+    DiscoverPage discover = new DiscoverPage(page);
+    discover.likeFirstUserAcceptDialog();
 
     // After dialog is dismissed, we should still be on discover
-    assertTrue(page.url().contains("/discover"));
+    assertTrue(discover.url().contains("/discover"));
   }
 }

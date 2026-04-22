@@ -1,8 +1,7 @@
 package com.nearmatch.tests.ui;
 
-import com.microsoft.playwright.Page;
-import com.microsoft.playwright.options.AriaRole;
 import com.nearmatch.framework.ui.BaseUiTest;
+import com.nearmatch.framework.ui.pom.pages.MatchesPage;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -17,20 +16,20 @@ public class MatchesTest extends BaseUiTest {
 
   @Test
   void matchesPageRendersHeading() {
-    page.navigate("/matches");
-    assertTrue(page.locator("h1:has-text('Matches của bạn')").isVisible());
+    MatchesPage matches = new MatchesPage(page).open();
+    assertTrue(matches.heading().isVisible());
   }
 
   @Test
   void matchesPageShowsEmptyStateOrMatchList() {
-    page.navigate("/matches");
-    page.waitForSelector("h1:has-text('Matches của bạn')");
+    MatchesPage matches = new MatchesPage(page).open();
+    matches.heading().waitFor();
 
     // Wait a bit for content to load
     page.waitForTimeout(1000);
 
     // Either a match card or the empty-state message must be present
-    boolean hasMatches = page.locator("button:has-text('Nhắn tin')").count() > 0;
+    boolean hasMatches = matches.messageButtons().count() > 0;
     boolean hasEmptyState = page.locator("text=/Chưa có match|Không có match|chưa có người|không tìm thấy/i").count() > 0;
     boolean hasLoadingOrContent = page.locator("body").textContent().length() > 100;
     
@@ -40,25 +39,16 @@ public class MatchesTest extends BaseUiTest {
 
   @Test
   void matchesPageRedirectsToLoginWhenNotAuthenticated() {
-    // Fresh context — no session
-    var freshContext = browser.newContext(
-      new com.microsoft.playwright.Browser.NewContextOptions().setBaseURL(baseUrl)
-    );
-    freshContext.addInitScript("() => { localStorage.clear(); }");
-    var freshPage = freshContext.newPage();
-    freshPage.setDefaultTimeout(15_000);
-    freshPage.setDefaultNavigationTimeout(30_000);
-
-    freshPage.navigate("/matches");
-    freshPage.waitForURL("**/auth/login");
-    assertTrue(freshPage.url().contains("/auth/login"));
-
-    freshContext.close();
+    try (var session = freshSession()) {
+      session.page().navigate("/matches");
+      session.page().waitForURL("**/auth/login");
+      assertTrue(session.page().url().contains("/auth/login"));
+    }
   }
 
   @Test
   void bottomNavIsVisible() {
-    page.navigate("/matches");
-    assertTrue(page.locator("a:has-text('Matches')").last().isVisible());
+    MatchesPage matches = new MatchesPage(page).open();
+    assertTrue(matches.bottomNavMatches().isVisible());
   }
 }

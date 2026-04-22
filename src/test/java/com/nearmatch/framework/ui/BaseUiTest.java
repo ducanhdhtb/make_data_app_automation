@@ -6,8 +6,9 @@ import com.microsoft.playwright.Tracing;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
 import com.microsoft.playwright.BrowserContext;
-import com.microsoft.playwright.options.AriaRole;
 import com.nearmatch.framework.config.TestConfig;
+import com.nearmatch.framework.ui.pom.pages.LoginPage;
+import com.nearmatch.framework.ui.pom.session.UiSession;
 import io.qameta.allure.Allure;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.AfterClass;
@@ -124,11 +125,13 @@ public abstract class BaseUiTest {
   }
 
   protected void loginSeed() {
-    page.navigate("/auth/login");
-    page.locator(".field:has(label:has-text('Email')) input").fill(TestConfig.seedEmail());
-    page.locator(".field:has(label:has-text('Mật khẩu')) input[type='password']").fill(TestConfig.seedPassword());
-    page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Đăng nhập")).click();
-    page.waitForURL("**/discover");
+    new LoginPage(page)
+      .open()
+      .loginAs(TestConfig.seedEmail(), TestConfig.seedPassword());
+  }
+
+  protected UiSession freshSession() {
+    return new UiSession(browser, baseUrl);
   }
 
   public final Page page() {

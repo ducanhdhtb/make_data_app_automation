@@ -1,8 +1,7 @@
 package com.nearmatch.tests.ui;
 
-import com.microsoft.playwright.Page;
-import com.microsoft.playwright.options.AriaRole;
 import com.nearmatch.framework.ui.BaseUiTest;
+import com.nearmatch.framework.ui.pom.pages.NotificationsPage;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -17,56 +16,46 @@ public class NotificationsTest extends BaseUiTest {
 
   @Test
   void notificationsPageRendersHeading() {
-    page.navigate("/notifications");
-    assertTrue(page.locator("h1:has-text('Thông báo')").isVisible());
+    NotificationsPage notif = new NotificationsPage(page).open();
+    assertTrue(notif.heading().isVisible());
   }
 
   @Test
   void notificationsPageHasReloadAndMarkReadButtons() {
-    page.navigate("/notifications");
-    assertTrue(page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Tải lại")).isVisible());
-    assertTrue(page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Đánh dấu đã đọc")).isVisible());
+    NotificationsPage notif = new NotificationsPage(page).open();
+    assertTrue(notif.reloadButton().isVisible());
+    assertTrue(notif.markReadButton().isVisible());
   }
 
   @Test
   void notificationsPageShowsItemsOrEmptyState() {
-    page.navigate("/notifications");
+    NotificationsPage notif = new NotificationsPage(page).open();
 
     // Wait for loading to finish
-    page.waitForSelector("h1:has-text('Thông báo')");
+    notif.heading().waitFor();
 
-    boolean hasItems = page.locator(".mini-item").count() > 0;
-    boolean hasEmpty = page.locator("text=Bạn chưa có thông báo nào").isVisible();
+    boolean hasItems = notif.items().count() > 0;
+    boolean hasEmpty = notif.emptyState().isVisible();
     assertTrue(hasItems || hasEmpty, "Expected notification items or empty state");
   }
 
   @Test
   void markAllReadButtonWorks() {
-    page.navigate("/notifications");
-    page.waitForSelector("h1:has-text('Thông báo')");
-
-    page.onDialog(dialog -> dialog.accept());
-    page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Đánh dấu đã đọc")).click();
+    NotificationsPage notif = new NotificationsPage(page).open();
+    notif.heading().waitFor();
+    notif.markAllReadAcceptDialog();
 
     // Page should remain on /notifications
-    assertTrue(page.url().contains("/notifications"));
+    assertTrue(notif.url().contains("/notifications"));
   }
 
   @Test
   void notificationsPageRedirectsToLoginWhenNotAuthenticated() {
-    var freshContext = browser.newContext(
-      new com.microsoft.playwright.Browser.NewContextOptions().setBaseURL(baseUrl)
-    );
-    freshContext.addInitScript("() => { localStorage.clear(); }");
-    var freshPage = freshContext.newPage();
-    freshPage.setDefaultTimeout(15_000);
-    freshPage.setDefaultNavigationTimeout(30_000);
-
-    freshPage.navigate("/notifications");
-    freshPage.waitForURL("**/auth/login");
-    assertTrue(freshPage.url().contains("/auth/login"));
-
-    freshContext.close();
+    try (var session = freshSession()) {
+      session.page().navigate("/notifications");
+      session.page().waitForURL("**/auth/login");
+      assertTrue(session.page().url().contains("/auth/login"));
+    }
   }
 
   @Test
