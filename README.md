@@ -7,19 +7,25 @@ Java + Maven test automation framework using Playwright (UI + API), TestNG, and 
 Run all tests:
 
 ```bash
-./mvnw test
+./mvnw clean test
 ```
 
 Run only API tests:
 
 ```bash
-./mvnw test -Papi
+./mvnw clean test -Papi
 ```
 
 Run only UI tests:
 
 ```bash
-./mvnw test -Pui
+./mvnw clean test -Pui
+```
+
+Run via `testng.xml` suite:
+
+```bash
+./mvnw clean test -Psuite
 ```
 
 Run a single test class:

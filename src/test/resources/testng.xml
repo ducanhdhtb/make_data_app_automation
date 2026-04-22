@@ -1,0 +1,15 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd" >
+<suite name="make-date-app-automation" verbose="1">
+  <test name="api">
+    <packages>
+      <package name="com.nearmatch.tests.api"/>
+    </packages>
+  </test>
+
+  <test name="ui">
+    <packages>
+      <package name="com.nearmatch.tests.ui"/>
+    </packages>
+  </test>
+</suite>
+
