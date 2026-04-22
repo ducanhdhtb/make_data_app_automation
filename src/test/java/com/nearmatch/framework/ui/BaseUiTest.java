@@ -173,6 +173,8 @@ public abstract class BaseUiTest {
       case "webkit" -> playwright.webkit();
       default -> throw new IllegalArgumentException("Unsupported browser: " + TestConfig.browserName());
     };
-    browser = browserType.launch(new BrowserType.LaunchOptions().setHeadless(headless));
+    browser = browserType.launch(new BrowserType.LaunchOptions()
+      .setHeadless(headless)
+      .setSlowMo(TestConfig.slowMoMs()));
   }
 }

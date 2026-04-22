@@ -31,11 +31,13 @@ Run a single test class:
 ## Configuration
 
 All config can be set via Java system properties (`-D...`) or environment variables.
+Defaults live in `src/test/resources/test.properties` (or point to a custom file via `-DconfigFile=...` / `CONFIG_FILE=...`).
 
 - `baseUrl` / `BASE_URL` (default `http://localhost:3002`)
 - `apiUrl` / `API_URL` (default `http://localhost:3001/api`)
 - `headless` / `HEADLESS` (default `true`)
 - `browser` / `BROWSER` (default `chromium`, also supports `firefox`, `webkit`)
+- `slowMoMs` / `SLOW_MO_MS` (default `0`)
 - `trace` / `TRACE` (default `false`)
 - `artifactsDir` / `ARTIFACTS_DIR` (default `target/test-artifacts`)
 - `seedEmail` / `SEED_EMAIL` (default `linh@example.com`)
