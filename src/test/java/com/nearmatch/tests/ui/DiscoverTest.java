@@ -8,6 +8,7 @@ import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertTrue;
 
+@Test(groups = {"regression"})
 public class DiscoverTest extends BaseUiTest {
 
   /** Log in once before each test so we land on /discover. */

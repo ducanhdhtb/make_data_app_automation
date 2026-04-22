@@ -21,6 +21,7 @@ import static org.testng.Assert.*;
  *   POST /conversations/:id/messages
  *   GET  /conversations/:id/pins
  */
+@Test(groups = {"regression"})
 public class ConversationsApiTest extends BaseApiTest {
 
   private APIRequestContext authed;

@@ -8,8 +8,9 @@ import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertTrue;
 
+@Test(groups = {"regression"})
 public class LoginTest extends BaseUiTest {
-  @Test
+  @Test(groups = {"smoke"})
   void loginWithSeedAccountNavigatesToDiscover() {
     DiscoverPage discover = new LoginPage(page)
       .open()

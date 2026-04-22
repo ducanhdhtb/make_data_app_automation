@@ -15,11 +15,12 @@ import static org.testng.Assert.*;
 /**
  * API tests for POST /auth/register, POST /auth/login, GET /auth/me
  */
+@Test(groups = {"regression"})
 public class AuthApiTest extends BaseApiTest {
 
   // ── POST /auth/login ──────────────────────────────────────────────────────
 
-  @Test
+  @Test(groups = {"smoke"})
   void loginWithValidCredentialsReturns2xxAndToken() {
     APIResponse res = request.post(p("/auth/login"), RequestOptions.create()
       .setData(Map.of("email", SEED_EMAIL, "password", SEED_PASSWORD)));

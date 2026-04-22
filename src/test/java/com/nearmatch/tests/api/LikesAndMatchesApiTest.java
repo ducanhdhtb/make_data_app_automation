@@ -18,6 +18,7 @@ import static org.testng.Assert.*;
  *   POST /likes
  *   GET  /matches
  */
+@Test(groups = {"regression"})
 public class LikesAndMatchesApiTest extends BaseApiTest {
 
   private APIRequestContext authed;

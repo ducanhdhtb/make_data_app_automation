@@ -15,6 +15,7 @@ import static org.testng.Assert.*;
  *   GET  /notifications
  *   POST /notifications/read-all
  */
+@Test(groups = {"regression"})
 public class NotificationsApiTest extends BaseApiTest {
 
   private APIRequestContext authed;

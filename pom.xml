@@ -21,6 +21,10 @@
         <surefire.forkCount>0</surefire.forkCount>
 
         <allure.version>2.29.0</allure.version>
+
+        <!-- TestNG groups (tags). Override from CLI: -Dtestng.groups=smoke -->
+        <testng.groups></testng.groups>
+        <testng.excludedGroups></testng.excludedGroups>
     </properties>
 
     <dependencies>
@@ -93,6 +97,8 @@
                     <forkCount>${surefire.forkCount}</forkCount>
                     <reuseForks>true</reuseForks>
                     <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                    <groups>${testng.groups}</groups>
+                    <excludedGroups>${testng.excludedGroups}</excludedGroups>
                     <environmentVariables>
                         <!-- Work around environments that cannot reach playwright.azureedge.net directly. -->
                         <PLAYWRIGHT_DOWNLOAD_HOST>${playwright.downloadHost}</PLAYWRIGHT_DOWNLOAD_HOST>

@@ -6,15 +6,16 @@ import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertTrue;
 
+@Test(groups = {"regression"})
 public class HomePageTest extends BaseUiTest {
 
-  @Test
+  @Test(groups = {"smoke"})
   void homePageRendersHeroHeading() {
     HomePage home = new HomePage(page).open();
     assertTrue(home.heroHeading().isVisible());
   }
 
-  @Test
+  @Test(groups = {"smoke"})
   void homePageHasLoginAndRegisterLinks() {
     HomePage home = new HomePage(page).open();
     assertTrue(home.loginLink().isVisible());

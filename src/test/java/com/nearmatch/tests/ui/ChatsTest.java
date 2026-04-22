@@ -10,6 +10,7 @@ import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
 
+@Test(groups = {"regression"})
 public class ChatsTest extends BaseUiTest {
 
   @BeforeMethod

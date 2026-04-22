@@ -20,6 +20,7 @@ import static org.testng.Assert.*;
  *   GET  /users/:id
  *   PUT  /users/me
  */
+@Test(groups = {"regression"})
 public class UsersApiTest extends BaseApiTest {
 
   private APIRequestContext authed;

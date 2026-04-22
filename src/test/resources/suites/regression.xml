@@ -3,15 +3,24 @@
   <!-- Full regression: UI + API packages. -->
 
   <test name="api">
+    <groups>
+      <run>
+        <include name="regression"/>
+      </run>
+    </groups>
     <packages>
       <package name="com.nearmatch.tests.api"/>
     </packages>
   </test>
 
   <test name="ui">
+    <groups>
+      <run>
+        <include name="regression"/>
+      </run>
+    </groups>
     <packages>
       <package name="com.nearmatch.tests.ui"/>
     </packages>
   </test>
 </suite>
-

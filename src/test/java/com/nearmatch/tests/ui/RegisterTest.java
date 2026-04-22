@@ -6,6 +6,7 @@ import org.testng.annotations.Test;
 
 import static org.testng.Assert.assertTrue;
 
+@Test(groups = {"regression"})
 public class RegisterTest extends BaseUiTest {
 
   @Test

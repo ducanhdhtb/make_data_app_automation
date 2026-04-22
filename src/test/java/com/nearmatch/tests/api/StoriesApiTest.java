@@ -19,6 +19,7 @@ import static org.testng.Assert.*;
  *   POST   /stories
  *   DELETE /stories/:id
  */
+@Test(groups = {"regression"})
 public class StoriesApiTest extends BaseApiTest {
 
   private APIRequestContext authed;

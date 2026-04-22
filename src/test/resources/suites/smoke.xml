@@ -1,19 +1,15 @@
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd" >
 <suite name="smoke" verbose="1">
-  <!-- Fast sanity checks: keep this suite small and stable. -->
-
-  <test name="api-smoke">
-    <classes>
-      <class name="com.nearmatch.tests.api.AuthApiTest"/>
-    </classes>
-  </test>
-
-  <test name="ui-smoke">
-    <classes>
-      <class name="com.nearmatch.tests.ui.HomePageTest"/>
-      <class name="com.nearmatch.tests.ui.AuthRedirectTest"/>
-      <class name="com.nearmatch.tests.ui.LoginTest"/>
-    </classes>
+  <!-- Run tests tagged with group 'smoke' (also typically tagged as 'regression'). -->
+  <test name="smoke">
+    <groups>
+      <run>
+        <include name="smoke"/>
+      </run>
+    </groups>
+    <packages>
+      <package name="com.nearmatch.tests.api"/>
+      <package name="com.nearmatch.tests.ui"/>
+    </packages>
   </test>
 </suite>
-
