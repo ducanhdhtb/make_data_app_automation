@@ -4,34 +4,36 @@ Java + Maven test automation framework using Playwright (UI + API), TestNG, and 
 
 ## Quick Start
 
+If you do not have Maven installed, use the wrapper: `./mvnw clean test`.
+
 Run all tests:
 
 ```bash
-./mvnw clean test
+mvn clean test
 ```
 
 Run only API tests:
 
 ```bash
-./mvnw clean test -Papi
+mvn clean test -Papi
 ```
 
 Run only UI tests:
 
 ```bash
-./mvnw clean test -Pui
+mvn clean test -Pui
 ```
 
 Run via `testng.xml` suite:
 
 ```bash
-./mvnw clean test -Psuite
+mvn clean test -Psuite
 ```
 
 Run a single test class:
 
 ```bash
-./mvnw test -Dtest=LoginTest
+mvn test -Dtest=LoginTest
 ```
 
 ## Configuration
@@ -52,7 +54,7 @@ Defaults live in `src/test/resources/test.properties` (or point to a custom file
 Example:
 
 ```bash
-./mvnw test -Pui -Dheadless=false -DbaseUrl=http://localhost:3002
+mvn test -Pui -Dheadless=false -DbaseUrl=http://localhost:3002
 ```
 
 ## Artifacts
@@ -70,7 +72,7 @@ Test runs write Allure results to `target/allure-results`.
 Generate a static report:
 
 ```bash
-./mvnw allure:report
+mvn allure:report
 ```
 
 Or open an interactive report (requires Allure CLI installed on your machine):
