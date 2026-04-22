@@ -8,58 +8,50 @@ import com.microsoft.playwright.Playwright;
 import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.options.AriaRole;
 import com.nearmatch.framework.config.TestConfig;
-import com.nearmatch.framework.junit.TestOutcome;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.TestInfo;
-import org.junit.jupiter.api.extension.RegisterExtension;
+import io.qameta.allure.Allure;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
+import org.testng.ITestResult;
 
+import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class BaseUiTest {
   protected static String baseUrl;
   private static Playwright playwright;
   protected static Browser browser;
+  private static final AtomicInteger CLASS_REFCOUNT = new AtomicInteger(0);
 
   protected BrowserContext context;
   protected Page page;
 
   private boolean tracingStarted;
 
-  @RegisterExtension
-  final TestOutcome outcome = new TestOutcome();
-
-  @BeforeAll
-  static void beforeAll() {
-    baseUrl = TestConfig.baseUrl();
-    boolean headless = TestConfig.headless();
-
-    playwright = Playwright.create();
-
-    BrowserType browserType = switch (TestConfig.browserName().toLowerCase()) {
-      case "chromium" -> playwright.chromium();
-      case "firefox" -> playwright.firefox();
-      case "webkit" -> playwright.webkit();
-      default -> throw new IllegalArgumentException("Unsupported browser: " + TestConfig.browserName());
-    };
-
-    browser = browserType.launch(new BrowserType.LaunchOptions().setHeadless(headless));
+  @BeforeClass(alwaysRun = true)
+  public void beforeClass() {
+    CLASS_REFCOUNT.incrementAndGet();
+    ensureBrowserStarted();
   }
 
-  @AfterAll
-  static void afterAll() {
-    if (browser != null) browser.close();
-    if (playwright != null) playwright.close();
+  @AfterClass(alwaysRun = true)
+  public void afterClass() {
+    if (CLASS_REFCOUNT.decrementAndGet() == 0) {
+      if (browser != null) browser.close();
+      if (playwright != null) playwright.close();
+      browser = null;
+      playwright = null;
+    }
   }
 
-  @BeforeEach
-  void beforeEach() {
+  @BeforeMethod(alwaysRun = true)
+  public void beforeMethod() {
     context = browser.newContext(new Browser.NewContextOptions().setBaseURL(baseUrl));
 
     // Ensure tests are isolated (no leftover auth/session across tests).
@@ -80,24 +72,33 @@ public abstract class BaseUiTest {
     page.setDefaultNavigationTimeout(30_000);
   }
 
-  @AfterEach
-  void afterEach(TestInfo testInfo) {
+  @AfterMethod(alwaysRun = true)
+  public void afterMethod(ITestResult result) {
+    boolean success = result == null || result.isSuccess();
     Path dir = null;
-    if (outcome.failed()) {
-      dir = artifactDir(testInfo);
+
+    if (!success) {
+      dir = artifactDir(result);
       try {
         Files.createDirectories(dir);
       } catch (Exception ignored) {
         // best-effort
       }
+    }
+
+    if (!success && page != null) {
+      try {
+        byte[] png = page.screenshot(new Page.ScreenshotOptions().setFullPage(true));
+        Files.write(dir.resolve("screenshot.png"), png);
+        Allure.addAttachment("screenshot", "image/png", new ByteArrayInputStream(png), ".png");
+      } catch (Exception ignored) {
+        // best-effort
+      }
 
       try {
-        if (page != null) {
-          page.screenshot(new Page.ScreenshotOptions()
-            .setFullPage(true)
-            .setPath(dir.resolve("screenshot.png")));
-          Files.writeString(dir.resolve("url.txt"), page.url() + "\n", StandardCharsets.UTF_8);
-        }
+        String url = page.url() + "\n";
+        Files.writeString(dir.resolve("url.txt"), url, StandardCharsets.UTF_8);
+        Allure.addAttachment("url", "text/plain", url);
       } catch (Exception ignored) {
         // best-effort
       }
@@ -105,12 +106,14 @@ public abstract class BaseUiTest {
 
     if (tracingStarted) {
       try {
-        Path tracePath = outcome.failed() && dir != null ? dir.resolve("trace.zip") : null;
-        if (tracePath != null) {
-          Files.createDirectories(tracePath.getParent());
-          context.tracing().stop(new Tracing.StopOptions().setPath(tracePath));
-        } else {
+        if (success) {
           context.tracing().stop();
+        } else {
+          Path traceZip = dir.resolve("trace.zip");
+          context.tracing().stop(new Tracing.StopOptions().setPath(traceZip));
+          if (Files.exists(traceZip)) {
+            Allure.addAttachment("trace", "application/zip", Files.newInputStream(traceZip), ".zip");
+          }
         }
       } catch (Exception ignored) {
         // best-effort
@@ -128,17 +131,48 @@ public abstract class BaseUiTest {
     page.waitForURL("**/discover");
   }
 
-  private static Path artifactDir(TestInfo testInfo) {
-    String cls = testInfo.getTestClass().map(Class::getSimpleName).orElse("UnknownClass");
-    String method = testInfo.getTestMethod().map(m -> m.getName()).orElse("unknownTest");
+  public final Page page() {
+    return page;
+  }
+
+  public final BrowserContext context() {
+    return context;
+  }
+
+  public final boolean isTracingStarted() {
+    return tracingStarted;
+  }
+
+  private static Path artifactDir(ITestResult result) {
+    String cls = result != null && result.getTestClass() != null
+      ? result.getTestClass().getRealClass().getSimpleName()
+      : "UnknownClass";
+    String method = result != null && result.getMethod() != null
+      ? result.getMethod().getMethodName()
+      : "unknownTest";
     String ts = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss").format(LocalDateTime.now());
     String name = sanitize(cls + "." + method + "-" + ts);
     return TestConfig.artifactsDir().resolve(name);
   }
 
   private static String sanitize(String s) {
-    // Keep it filesystem-friendly across macOS/Linux/Windows.
     String cleaned = s.replaceAll("[^a-zA-Z0-9._-]+", "_");
     return cleaned.length() > 140 ? cleaned.substring(0, 140) : cleaned;
+  }
+
+  private static synchronized void ensureBrowserStarted() {
+    if (browser != null && playwright != null) return;
+
+    baseUrl = TestConfig.baseUrl();
+    boolean headless = TestConfig.headless();
+
+    playwright = Playwright.create();
+    BrowserType browserType = switch (TestConfig.browserName().toLowerCase()) {
+      case "chromium" -> playwright.chromium();
+      case "firefox" -> playwright.firefox();
+      case "webkit" -> playwright.webkit();
+      default -> throw new IllegalArgumentException("Unsupported browser: " + TestConfig.browserName());
+    };
+    browser = browserType.launch(new BrowserType.LaunchOptions().setHeadless(headless));
   }
 }

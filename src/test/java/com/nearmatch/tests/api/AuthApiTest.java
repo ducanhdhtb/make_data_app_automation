@@ -5,12 +5,12 @@ import com.microsoft.playwright.APIResponse;
 import com.microsoft.playwright.APIRequestContext;
 import com.microsoft.playwright.options.RequestOptions;
 import com.nearmatch.framework.api.BaseApiTest;
-import org.junit.jupiter.api.Test;
+import org.testng.annotations.Test;
 
 import java.util.Map;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.testng.Assert.*;
 
 /**
  * API tests for POST /auth/register, POST /auth/login, GET /auth/me

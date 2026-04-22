@@ -5,13 +5,13 @@ import com.microsoft.playwright.APIRequestContext;
 import com.microsoft.playwright.APIResponse;
 import com.microsoft.playwright.options.RequestOptions;
 import com.nearmatch.framework.api.BaseApiTest;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.testng.Assert.*;
 
 /**
  * API tests for:
@@ -23,13 +23,13 @@ public class StoriesApiTest extends BaseApiTest {
 
   private APIRequestContext authed;
 
-  @BeforeEach
-  void authenticate() {
+  @BeforeMethod
+  public void authenticate() {
     authed = authedRequest(loginAndGetToken(SEED_EMAIL, SEED_PASSWORD));
   }
 
-  @AfterEach
-  void disposeAuthed() {
+  @AfterMethod(alwaysRun = true)
+  public void disposeAuthed() {
     if (authed != null) authed.dispose();
   }
 

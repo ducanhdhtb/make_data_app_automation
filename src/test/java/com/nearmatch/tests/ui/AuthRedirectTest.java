@@ -1,9 +1,9 @@
 package com.nearmatch.tests.ui;
 
 import com.nearmatch.framework.ui.BaseUiTest;
-import org.junit.jupiter.api.Test;
+import org.testng.annotations.Test;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.testng.Assert.assertTrue;
 
 public class AuthRedirectTest extends BaseUiTest {
   @Test

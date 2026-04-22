@@ -1,31 +1,31 @@
 # make_date_app_automation
 
-Java + Maven test automation framework using Playwright (UI + API) and JUnit 5.
+Java + Maven test automation framework using Playwright (UI + API), TestNG, and Allure reporting.
 
 ## Quick Start
 
 Run all tests:
 
 ```bash
-mvn test
+./mvnw test
 ```
 
 Run only API tests:
 
 ```bash
-mvn test -Papi
+./mvnw test -Papi
 ```
 
 Run only UI tests:
 
 ```bash
-mvn test -Pui
+./mvnw test -Pui
 ```
 
 Run a single test class:
 
 ```bash
-mvn test -Dtest=LoginTest
+./mvnw test -Dtest=LoginTest
 ```
 
 ## Configuration
@@ -44,7 +44,7 @@ All config can be set via Java system properties (`-D...`) or environment variab
 Example:
 
 ```bash
-mvn test -Pui -Dheadless=false -DbaseUrl=http://localhost:3002
+./mvnw test -Pui -Dheadless=false -DbaseUrl=http://localhost:3002
 ```
 
 ## Artifacts
@@ -55,9 +55,24 @@ On UI test failure, the framework writes artifacts to `target/test-artifacts/...
 - `url.txt`
 - `trace.zip` (only when `-Dtrace=true`)
 
+## Allure Report
+
+Test runs write Allure results to `target/allure-results`.
+
+Generate a static report:
+
+```bash
+./mvnw allure:report
+```
+
+Or open an interactive report (requires Allure CLI installed on your machine):
+
+```bash
+allure serve target/allure-results
+```
+
 ## Project Layout
 
 - `src/test/java/com/nearmatch/framework/*`: reusable framework code (config, base fixtures)
 - `src/test/java/com/nearmatch/tests/api/*`: API tests
 - `src/test/java/com/nearmatch/tests/ui/*`: UI tests
-

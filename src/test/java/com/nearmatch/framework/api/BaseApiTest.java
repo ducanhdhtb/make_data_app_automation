@@ -7,13 +7,14 @@ import com.microsoft.playwright.APIRequestContext;
 import com.microsoft.playwright.APIResponse;
 import com.microsoft.playwright.Playwright;
 import com.nearmatch.framework.config.TestConfig;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Base class for API-level tests.
@@ -32,32 +33,34 @@ public abstract class BaseApiTest {
   protected static String apiUrl;
   private static Playwright playwright;
   protected static final ObjectMapper MAPPER = new ObjectMapper();
+  private static final AtomicInteger CLASS_REFCOUNT = new AtomicInteger(0);
 
   protected APIRequestContext request;
 
   protected static String SEED_EMAIL;
   protected static String SEED_PASSWORD;
 
-  @BeforeAll
-  static void beforeAll() {
-    apiUrl = TestConfig.apiUrl();
-    SEED_EMAIL = TestConfig.seedEmail();
-    SEED_PASSWORD = TestConfig.seedPassword();
-    playwright = Playwright.create();
+  @BeforeClass(alwaysRun = true)
+  public void beforeClass() {
+    CLASS_REFCOUNT.incrementAndGet();
+    ensureStarted();
   }
 
-  @AfterAll
-  static void afterAll() {
-    if (playwright != null) playwright.close();
+  @AfterClass(alwaysRun = true)
+  public void afterClass() {
+    if (CLASS_REFCOUNT.decrementAndGet() == 0) {
+      if (playwright != null) playwright.close();
+      playwright = null;
+    }
   }
 
-  @BeforeEach
-  void beforeEach() {
+  @BeforeMethod(alwaysRun = true)
+  public void beforeMethod() {
     request = newContext(null);
   }
 
-  @AfterEach
-  void afterEach() {
+  @AfterMethod(alwaysRun = true)
+  public void afterMethod() {
     if (request != null) request.dispose();
   }
 
@@ -105,6 +108,14 @@ public abstract class BaseApiTest {
         .setBaseURL(apiUrl)
         .setExtraHTTPHeaders(headers)
     );
+  }
+
+  private static synchronized void ensureStarted() {
+    if (playwright != null && apiUrl != null && SEED_EMAIL != null && SEED_PASSWORD != null) return;
+    apiUrl = TestConfig.apiUrl();
+    SEED_EMAIL = TestConfig.seedEmail();
+    SEED_PASSWORD = TestConfig.seedPassword();
+    playwright = Playwright.create();
   }
 
 }

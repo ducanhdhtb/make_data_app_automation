@@ -3,16 +3,16 @@ package com.nearmatch.tests.ui;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.AriaRole;
 import com.nearmatch.framework.ui.BaseUiTest;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.testng.Assert.assertTrue;
 
 public class DiscoverTest extends BaseUiTest {
 
   /** Log in once before each test so we land on /discover. */
-  @BeforeEach
-  void login() {
+  @BeforeMethod
+  public void login() {
     loginSeed();
   }
 
