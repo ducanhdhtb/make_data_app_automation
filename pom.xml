@@ -34,7 +34,6 @@
             <groupId>com.microsoft.playwright</groupId>
             <artifactId>playwright</artifactId>
             <version>${playwright.version}</version>
-            <scope>test</scope>
         </dependency>
 
         <!-- JSON -->
@@ -119,11 +118,9 @@
                             <goal>java</goal>
                         </goals>
                         <configuration>
-                            <mainClass>com.microsoft.playwright.CLI</mainClass>
-                            <classpathScope>test</classpathScope>
-                            <arguments>
-                                <argument>install</argument>
-                            </arguments>
+                            <!-- Avoid Playwright CLI here: it may System.exit() and stop Maven early. -->
+                            <mainClass>com.nearmatch.framework.tools.PlaywrightInstaller</mainClass>
+                            <classpathScope>compile</classpathScope>
                         </configuration>
                     </execution>
                 </executions>
