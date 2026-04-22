@@ -23,7 +23,8 @@
         <allure.version>2.29.0</allure.version>
 
         <!-- TestNG groups (tags). Jenkinsfile uses -Dgroups=... -->
-        <groups></groups>
+        <!-- Default to regression so a plain `mvn clean test` still runs all tagged tests. -->
+        <groups>regression</groups>
         <excludedGroups></excludedGroups>
     </properties>
 
@@ -99,10 +100,6 @@
                     <redirectTestOutputToFile>true</redirectTestOutputToFile>
                     <groups>${groups}</groups>
                     <excludedGroups>${excludedGroups}</excludedGroups>
-                    <environmentVariables>
-                        <!-- Work around environments that cannot reach playwright.azureedge.net directly. -->
-                        <PLAYWRIGHT_DOWNLOAD_HOST>${playwright.downloadHost}</PLAYWRIGHT_DOWNLOAD_HOST>
-                    </environmentVariables>
                     <systemPropertyVariables>
                         <allure.results.directory>${project.build.directory}/allure-results</allure.results.directory>
                     </systemPropertyVariables>
@@ -127,9 +124,6 @@
                             <arguments>
                                 <argument>install</argument>
                             </arguments>
-                            <environmentVariables>
-                                <PLAYWRIGHT_DOWNLOAD_HOST>${playwright.downloadHost}</PLAYWRIGHT_DOWNLOAD_HOST>
-                            </environmentVariables>
                         </configuration>
                     </execution>
                 </executions>

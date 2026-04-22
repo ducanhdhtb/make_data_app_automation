@@ -18,6 +18,9 @@ pipeline {
 
     ALLURE_RESULTS    = "${AUTOMATION_DIR}/target/allure-results"
     ALLURE_REPORT     = "${AUTOMATION_DIR}/target/allure-report"
+
+    // Work around environments that cannot reach playwright.azureedge.net directly.
+    PLAYWRIGHT_DOWNLOAD_HOST = 'https://playwright.download.prss.microsoft.com/dbazure/download/playwright'
   }
 
   triggers {
