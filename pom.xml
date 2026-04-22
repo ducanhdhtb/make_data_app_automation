@@ -22,9 +22,9 @@
 
         <allure.version>2.29.0</allure.version>
 
-        <!-- TestNG groups (tags). Override from CLI: -Dtestng.groups=smoke -->
-        <testng.groups></testng.groups>
-        <testng.excludedGroups></testng.excludedGroups>
+        <!-- TestNG groups (tags). Jenkinsfile uses -Dgroups=... -->
+        <groups></groups>
+        <excludedGroups></excludedGroups>
     </properties>
 
     <dependencies>
@@ -97,8 +97,8 @@
                     <forkCount>${surefire.forkCount}</forkCount>
                     <reuseForks>true</reuseForks>
                     <redirectTestOutputToFile>true</redirectTestOutputToFile>
-                    <groups>${testng.groups}</groups>
-                    <excludedGroups>${testng.excludedGroups}</excludedGroups>
+                    <groups>${groups}</groups>
+                    <excludedGroups>${excludedGroups}</excludedGroups>
                     <environmentVariables>
                         <!-- Work around environments that cannot reach playwright.azureedge.net directly. -->
                         <PLAYWRIGHT_DOWNLOAD_HOST>${playwright.downloadHost}</PLAYWRIGHT_DOWNLOAD_HOST>
@@ -107,6 +107,32 @@
                         <allure.results.directory>${project.build.directory}/allure-results</allure.results.directory>
                     </systemPropertyVariables>
                 </configuration>
+            </plugin>
+
+            <!-- Jenkinsfile runs: mvn generate-test-resources (to install browsers) -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <id>playwright-install-browsers</id>
+                        <phase>generate-test-resources</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>com.microsoft.playwright.CLI</mainClass>
+                            <classpathScope>test</classpathScope>
+                            <arguments>
+                                <argument>install</argument>
+                            </arguments>
+                            <environmentVariables>
+                                <PLAYWRIGHT_DOWNLOAD_HOST>${playwright.downloadHost}</PLAYWRIGHT_DOWNLOAD_HOST>
+                            </environmentVariables>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
 
             <plugin>
