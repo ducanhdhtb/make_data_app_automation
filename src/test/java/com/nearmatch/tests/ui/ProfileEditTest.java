@@ -17,16 +17,16 @@ public class ProfileEditTest extends BaseUiTest {
 
   @Test
   void editProfilePageRendersHeading() {
-    ProfileEditPage profile = new ProfileEditPage(page).open();
+    ProfileEditPage profile = new ProfileEditPage(page()).open();
     assertTrue(profile.heading().isVisible());
   }
 
   @Test
   void editProfilePageLoadsCurrentUserData() {
-    ProfileEditPage profile = new ProfileEditPage(page).open().waitForProfileLoaded();
+    ProfileEditPage profile = new ProfileEditPage(page()).open().waitForProfileLoaded();
 
     // Give React a moment to set the input value
-    page.waitForTimeout(500);
+    page().waitForTimeout(500);
 
     var displayNameInput = profile.displayNameInput();
     // Value should be non-empty after data loads
@@ -35,7 +35,7 @@ public class ProfileEditTest extends BaseUiTest {
 
   @Test
   void editProfilePageHasAllFormFields() {
-    ProfileEditPage profile = new ProfileEditPage(page).open();
+    ProfileEditPage profile = new ProfileEditPage(page()).open();
     profile.displayNameInput().waitFor();
 
     assertTrue(profile.displayNameInput().isVisible());
@@ -48,28 +48,28 @@ public class ProfileEditTest extends BaseUiTest {
 
   @Test
   void saveProfileShowsSuccessMessage() {
-    ProfileEditPage profile = new ProfileEditPage(page).open();
+    ProfileEditPage profile = new ProfileEditPage(page()).open();
 
     // Wait for form to load
     profile.waitForProfileLoaded();
-    page.waitForTimeout(500);
+    page().waitForTimeout(500);
 
     // Update city field and save
     profile.cityInput().fill("TP.HCM");
     profile.saveButton().click();
 
     // Expect a green success message — wait for it to appear
-    page.waitForSelector("p[style*='color']");
+    page().waitForSelector("p[style*='color']");
     // The success message contains green color (#15803d)
-    var successMsg = page.locator("p[style*='15803d']");
-    var errorMsg = page.locator("p[style*='be123c']");
+    var successMsg = page().locator("p[style*='15803d']");
+    var errorMsg = page().locator("p[style*='be123c']");
     assertTrue(successMsg.count() > 0 || errorMsg.count() == 0,
       "Expected success message or no error after save");
   }
 
   @Test
   void avatarUploadInputIsPresent() {
-    ProfileEditPage profile = new ProfileEditPage(page).open();
+    ProfileEditPage profile = new ProfileEditPage(page()).open();
     profile.avatarFileInput().waitFor();
     assertTrue(profile.avatarFileInput().isVisible());
   }

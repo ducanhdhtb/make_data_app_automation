@@ -10,8 +10,8 @@ import static org.testng.Assert.assertTrue;
 public class AuthRedirectTest extends BaseUiTest {
   @Test(groups = {"smoke"})
   void discoverRedirectsToLoginWhenNotAuthenticated() {
-    new DiscoverPage(page).open();
-    page.waitForURL("**/auth/login");
-    assertTrue(page.url().contains("/auth/login"));
+    new DiscoverPage(page()).open();
+    page().waitForURL("**/auth/login");
+    assertTrue(page().url().contains("/auth/login"));
   }
 }

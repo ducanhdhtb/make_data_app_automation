@@ -19,13 +19,13 @@ public class DiscoverTest extends BaseUiTest {
 
   @Test
   void discoverPageShowsStorySection() {
-    DiscoverPage discover = new DiscoverPage(page);
+    DiscoverPage discover = new DiscoverPage(page());
     assertTrue(discover.storySectionTitle().isVisible());
   }
 
   @Test
   void discoverPageShowsFilterControls() {
-    DiscoverPage discover = new DiscoverPage(page);
+    DiscoverPage discover = new DiscoverPage(page());
     // Radius select
     assertTrue(discover.radiusSelect().isVisible());
     // Age inputs
@@ -36,7 +36,7 @@ public class DiscoverTest extends BaseUiTest {
 
   @Test
   void discoverPageShowsUserCards() {
-    DiscoverPage discover = new DiscoverPage(page);
+    DiscoverPage discover = new DiscoverPage(page());
     // At least one user card with "Thả tim" button should be present
     discover.likeButtons().first().waitFor();
     assertTrue(discover.likeButtons().first().isVisible());
@@ -44,14 +44,14 @@ public class DiscoverTest extends BaseUiTest {
 
   @Test
   void discoverPageShowsViewProfileLink() {
-    DiscoverPage discover = new DiscoverPage(page);
-    page.waitForSelector("a:has-text('Xem profile')");
+    DiscoverPage discover = new DiscoverPage(page());
+    page().waitForSelector("a:has-text('Xem profile')");
     assertTrue(discover.viewProfileLinks().first().isVisible());
   }
 
   @Test
   void filterByRadiusUpdatesResults() {
-    DiscoverPage discover = new DiscoverPage(page);
+    DiscoverPage discover = new DiscoverPage(page());
     discover.applyRadiusFilter("5");
 
     // Page should still be on /discover after filtering
@@ -60,7 +60,7 @@ public class DiscoverTest extends BaseUiTest {
 
   @Test
   void bottomNavIsVisible() {
-    DiscoverPage discover = new DiscoverPage(page);
+    DiscoverPage discover = new DiscoverPage(page());
     assertTrue(discover.bottomNavLink("Khám phá").isVisible());
     assertTrue(discover.bottomNavLink("Matches").isVisible());
     assertTrue(discover.bottomNavLink("Chats").isVisible());
@@ -70,7 +70,7 @@ public class DiscoverTest extends BaseUiTest {
   @Test
   void likeButtonSendsRequest() {
     // Click the first "Thả tim" button and expect an alert (match or like confirmation)
-    DiscoverPage discover = new DiscoverPage(page);
+    DiscoverPage discover = new DiscoverPage(page());
     discover.likeFirstUserAcceptDialog();
 
     // After dialog is dismissed, we should still be on discover

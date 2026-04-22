@@ -12,7 +12,7 @@ import static org.testng.Assert.assertTrue;
 public class LoginTest extends BaseUiTest {
   @Test(groups = {"smoke"})
   void loginWithSeedAccountNavigatesToDiscover() {
-    DiscoverPage discover = new LoginPage(page)
+    DiscoverPage discover = new LoginPage(page())
       .open()
       .loginAs(TestConfig.seedEmail(), TestConfig.seedPassword());
 

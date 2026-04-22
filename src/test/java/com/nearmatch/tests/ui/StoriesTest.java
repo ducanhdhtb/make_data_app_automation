@@ -17,13 +17,13 @@ public class StoriesTest extends BaseUiTest {
 
   @Test
   void storiesPageRendersHeading() {
-    StoriesPage stories = new StoriesPage(page).open();
+    StoriesPage stories = new StoriesPage(page()).open();
     assertTrue(stories.heading().isVisible());
   }
 
   @Test
   void storiesPageShowsPostForm() {
-    StoriesPage stories = new StoriesPage(page).open();
+    StoriesPage stories = new StoriesPage(page()).open();
     assertTrue(stories.postFormHeading().isVisible());
     assertTrue(stories.storyTypeSelect().isVisible());
     assertTrue(stories.postButton().isVisible());
@@ -31,7 +31,7 @@ public class StoriesTest extends BaseUiTest {
 
   @Test
   void storyTypeDropdownHasTextAndImageOptions() {
-    StoriesPage stories = new StoriesPage(page).open();
+    StoriesPage stories = new StoriesPage(page()).open();
     var select = stories.storyTypeSelect();
     assertTrue(select.locator("option[value='text']").count() == 1);
     assertTrue(select.locator("option[value='image']").count() == 1);
@@ -39,16 +39,16 @@ public class StoriesTest extends BaseUiTest {
 
   @Test
   void postTextStoryShowsConfirmationOrError() {
-    StoriesPage stories = new StoriesPage(page).open();
+    StoriesPage stories = new StoriesPage(page()).open();
     stories.postTextStoryAcceptDialog("Test story từ E2E", "E2E caption");
 
     // After posting, either a success alert fires or the page stays on /stories
-    assertTrue(page.url().contains("/stories"));
+    assertTrue(page().url().contains("/stories"));
   }
 
   @Test
   void switchingToImageTypeShowsFileInput() {
-    StoriesPage stories = new StoriesPage(page).open();
+    StoriesPage stories = new StoriesPage(page()).open();
     stories.storyTypeSelect().selectOption("image");
 
     // File input should appear when image type is selected

@@ -20,15 +20,15 @@ public class ChatsTest extends BaseUiTest {
 
   @Test
   void chatsPageLoads() {
-    ChatsPage chats = new ChatsPage(page).open();
+    ChatsPage chats = new ChatsPage(page()).open();
     chats.container().waitFor(new com.microsoft.playwright.Locator.WaitForOptions().setTimeout(10_000));
     assertTrue(chats.url().contains("/chats"));
   }
 
   @Test
   void chatsPageShowsConversationListOrEmptyState() {
-    ChatsPage chats = new ChatsPage(page).open();
-    page.waitForLoadState();
+    ChatsPage chats = new ChatsPage(page()).open();
+    page().waitForLoadState();
 
     boolean hasConversations = chats.conversationItems().count() > 0;
     boolean isEmpty = chats.emptyState().isVisible();
@@ -48,8 +48,8 @@ public class ChatsTest extends BaseUiTest {
 
   @Test
   void selectConversationDisplaysMessages() {
-    ChatsPage chats = new ChatsPage(page).open();
-    page.waitForLoadState();
+    ChatsPage chats = new ChatsPage(page()).open();
+    page().waitForLoadState();
 
     int conversationCount = chats.conversationItems().count();
     if (conversationCount == 0) {
@@ -70,8 +70,8 @@ public class ChatsTest extends BaseUiTest {
 
   @Test
   void sendTextMessageSuccessfully() {
-    ChatsPage chats = new ChatsPage(page).open();
-    page.waitForLoadState();
+    ChatsPage chats = new ChatsPage(page()).open();
+    page().waitForLoadState();
 
     int conversationCount = chats.conversationItems().count();
     if (conversationCount == 0) {
@@ -94,34 +94,34 @@ public class ChatsTest extends BaseUiTest {
 
   @Test
   void messageShowsDeliveryStatus() {
-    page.navigate("/chats");
-    page.waitForLoadState();
+    page().navigate("/chats");
+    page().waitForLoadState();
 
-    int conversationCount = page.locator(".chat-list-item").count();
+    int conversationCount = page().locator(".chat-list-item").count();
     if (conversationCount == 0) {
       return;
     }
 
-    page.locator(".chat-list-item").first().click();
-    page.waitForLoadState();
+    page().locator(".chat-list-item").first().click();
+    page().waitForLoadState();
 
     String testMessage = "Status test " + System.currentTimeMillis();
-    page.locator("input[placeholder='Nhập tin nhắn...']").fill(testMessage);
-    page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Gửi")).click();
+    page().locator("input[placeholder='Nhập tin nhắn...']").fill(testMessage);
+    page().getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Gửi")).click();
 
     // Wait for message to appear
-    page.waitForSelector(".chat-bubble:has-text('" + testMessage + "')", 
+    page().waitForSelector(".chat-bubble:has-text('" + testMessage + "')", 
       new Page.WaitForSelectorOptions().setTimeout(5_000));
 
     // Check for delivery status (should show "Đang gửi", "Đã nhận", or "Đã xem")
-    boolean hasStatus = page.locator(".chat-bubble:has-text('" + testMessage + "') >> text=/Đang gửi|Đã nhận|Đã xem/").count() > 0;
+    boolean hasStatus = page().locator(".chat-bubble:has-text('" + testMessage + "') >> text=/Đang gửi|Đã nhận|Đã xem/").count() > 0;
     assertTrue(hasStatus, "Message should show delivery status");
   }
 
   @Test
   void replyToMessageSuccessfully() {
-    ChatsPage chats = new ChatsPage(page).open();
-    page.waitForLoadState();
+    ChatsPage chats = new ChatsPage(page()).open();
+    page().waitForLoadState();
 
     int conversationCount = chats.conversationItems().count();
     if (conversationCount == 0) {
@@ -155,8 +155,8 @@ public class ChatsTest extends BaseUiTest {
 
   @Test
   void addReactionToMessage() {
-    ChatsPage chats = new ChatsPage(page).open();
-    page.waitForLoadState();
+    ChatsPage chats = new ChatsPage(page()).open();
+    page().waitForLoadState();
 
     int conversationCount = chats.conversationItems().count();
     if (conversationCount == 0) {
@@ -184,8 +184,8 @@ public class ChatsTest extends BaseUiTest {
 
   @Test
   void searchMessagesInConversation() {
-    ChatsPage chats = new ChatsPage(page).open();
-    page.waitForLoadState();
+    ChatsPage chats = new ChatsPage(page()).open();
+    page().waitForLoadState();
 
     int conversationCount = chats.conversationItems().count();
     if (conversationCount == 0) {
@@ -198,7 +198,7 @@ public class ChatsTest extends BaseUiTest {
     chats.conversationSearchInput().fill("test");
     chats.conversationSearchButton().click();
 
-    page.waitForLoadState();
+    page().waitForLoadState();
 
     // Verify search was executed (page should still be on chats)
     assertTrue(chats.url().contains("/chats"),
@@ -207,8 +207,8 @@ public class ChatsTest extends BaseUiTest {
 
   @Test
   void typingIndicatorAppears() {
-    ChatsPage chats = new ChatsPage(page).open();
-    page.waitForLoadState();
+    ChatsPage chats = new ChatsPage(page()).open();
+    page().waitForLoadState();
 
     int conversationCount = chats.conversationItems().count();
     if (conversationCount == 0) {
@@ -221,7 +221,7 @@ public class ChatsTest extends BaseUiTest {
     chats.messageInput().fill("T");
 
     // Typing indicator should appear (may take a moment)
-    page.waitForTimeout(500);
+    page().waitForTimeout(500);
 
     // Verify page is still functional
     assertTrue(chats.url().contains("/chats"),
@@ -230,8 +230,8 @@ public class ChatsTest extends BaseUiTest {
 
   @Test
   void uploadImageMessage() {
-    ChatsPage chats = new ChatsPage(page).open();
-    page.waitForLoadState();
+    ChatsPage chats = new ChatsPage(page()).open();
+    page().waitForLoadState();
 
     int conversationCount = chats.conversationItems().count();
     if (conversationCount == 0) {
@@ -265,8 +265,8 @@ public class ChatsTest extends BaseUiTest {
 
   @Test
   void conversationListUpdatesAfterNewMessage() {
-    ChatsPage chats = new ChatsPage(page).open();
-    page.waitForLoadState();
+    ChatsPage chats = new ChatsPage(page()).open();
+    page().waitForLoadState();
 
     int conversationCount = chats.conversationItems().count();
     if (conversationCount == 0) {
@@ -293,24 +293,24 @@ public class ChatsTest extends BaseUiTest {
 
   @Test
   void openChatFromMatchesNavigatesToChats() {
-    MatchesPage matches = new MatchesPage(page).open();
+    MatchesPage matches = new MatchesPage(page()).open();
     matches.heading().waitFor();
 
     boolean hasMatchCard = matches.messageButtons().count() > 0;
     if (!hasMatchCard) {
-      assertTrue(page.locator("text=Chưa có match nào").isVisible());
+      assertTrue(page().locator("text=Chưa có match nào").isVisible());
       return;
     }
 
     matches.messageButtons().first().click();
-    page.waitForURL("**/chats**");
-    assertTrue(page.url().contains("/chats"));
+    page().waitForURL("**/chats**");
+    assertTrue(page().url().contains("/chats"));
   }
 
   @Test
   void socketConnectionStatusDisplayed() {
-    ChatsPage chats = new ChatsPage(page).open();
-    page.waitForLoadState();
+    ChatsPage chats = new ChatsPage(page()).open();
+    page().waitForLoadState();
 
     // Check for socket status indicator
     boolean hasStatus = chats.statusText().count() > 0;
@@ -320,8 +320,8 @@ public class ChatsTest extends BaseUiTest {
 
   @Test
   void clearSearchFiltersMessages() {
-    ChatsPage chats = new ChatsPage(page).open();
-    page.waitForLoadState();
+    ChatsPage chats = new ChatsPage(page()).open();
+    page().waitForLoadState();
 
     int conversationCount = chats.conversationItems().count();
     if (conversationCount == 0) {
@@ -334,13 +334,13 @@ public class ChatsTest extends BaseUiTest {
     chats.conversationSearchInput().fill("test");
     chats.conversationSearchButton().click();
 
-    page.waitForLoadState();
+    page().waitForLoadState();
 
     // Clear search
     boolean hasClearButton = chats.clearSearchButton().count() > 0;
     if (hasClearButton) {
       chats.clearSearchButton().click();
-      page.waitForLoadState();
+      page().waitForLoadState();
     }
 
     assertTrue(chats.url().contains("/chats"),

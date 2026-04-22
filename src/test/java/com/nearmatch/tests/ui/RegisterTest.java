@@ -11,7 +11,7 @@ public class RegisterTest extends BaseUiTest {
 
   @Test
   void registerPageRendersAllFields() {
-    RegisterPage register = new RegisterPage(page).open();
+    RegisterPage register = new RegisterPage(page()).open();
 
     assertTrue(register.heading().isVisible());
     assertTrue(register.emailInput().isVisible());
@@ -25,14 +25,14 @@ public class RegisterTest extends BaseUiTest {
 
   @Test
   void registerPageHasLinkBackToLogin() {
-    RegisterPage register = new RegisterPage(page).open();
+    RegisterPage register = new RegisterPage(page()).open();
     register.goToLoginLink();
     assertTrue(register.url().contains("/auth/login"));
   }
 
   @Test
   void registerWithDuplicateEmailShowsError() {
-    RegisterPage register = new RegisterPage(page).open();
+    RegisterPage register = new RegisterPage(page()).open();
 
     register.emailInput().fill("linh@example.com");
     register.displayNameInput().fill("Test User");
@@ -41,13 +41,13 @@ public class RegisterTest extends BaseUiTest {
     register.submit();
 
     // Should stay on register page and show an error
-    page.waitForSelector("p[style*='color']");
-    assertTrue(page.url().contains("/auth/register"));
+    page().waitForSelector("p[style*='color']");
+    assertTrue(page().url().contains("/auth/register"));
   }
 
   @Test
   void genderDropdownHasExpectedOptions() {
-    RegisterPage register = new RegisterPage(page).open();
+    RegisterPage register = new RegisterPage(page()).open();
     var genderSelect = register.genderSelect();
     assertTrue(genderSelect.locator("option[value='female']").count() == 1);
     assertTrue(genderSelect.locator("option[value='male']").count() == 1);

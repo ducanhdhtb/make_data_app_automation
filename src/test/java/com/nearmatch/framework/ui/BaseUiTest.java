@@ -30,10 +30,10 @@ public abstract class BaseUiTest {
   protected static Browser browser;
   private static final AtomicInteger CLASS_REFCOUNT = new AtomicInteger(0);
 
-  protected BrowserContext context;
-  protected Page page;
-
-  private boolean tracingStarted;
+  // Singleton-per-thread: each TestNG thread gets its own Page/Context, safe for parallel runs.
+  private final ThreadLocal<BrowserContext> contextHolder = new ThreadLocal<>();
+  private final ThreadLocal<Page> pageHolder = new ThreadLocal<>();
+  private final ThreadLocal<Boolean> tracingStartedHolder = ThreadLocal.withInitial(() -> false);
 
   @BeforeClass(alwaysRun = true)
   public void beforeClass() {
@@ -53,7 +53,8 @@ public abstract class BaseUiTest {
 
   @BeforeMethod(alwaysRun = true)
   public void beforeMethod() {
-    context = browser.newContext(new Browser.NewContextOptions().setBaseURL(baseUrl));
+    BrowserContext context = browser.newContext(new Browser.NewContextOptions().setBaseURL(baseUrl));
+    contextHolder.set(context);
 
     // Ensure tests are isolated (no leftover auth/session across tests).
     context.addInitScript("() => { localStorage.clear(); }");
@@ -63,12 +64,13 @@ public abstract class BaseUiTest {
         .setScreenshots(true)
         .setSnapshots(true)
         .setSources(true));
-      tracingStarted = true;
+      tracingStartedHolder.set(true);
     } else {
-      tracingStarted = false;
+      tracingStartedHolder.set(false);
     }
 
-    page = context.newPage();
+    Page page = context.newPage();
+    pageHolder.set(page);
     page.setDefaultTimeout(15_000);
     page.setDefaultNavigationTimeout(30_000);
   }
@@ -77,6 +79,8 @@ public abstract class BaseUiTest {
   public void afterMethod(ITestResult result) {
     boolean success = result == null || result.isSuccess();
     Path dir = null;
+    Page page = pageHolder.get();
+    BrowserContext context = contextHolder.get();
 
     if (!success) {
       dir = artifactDir(result);
@@ -105,6 +109,7 @@ public abstract class BaseUiTest {
       }
     }
 
+    boolean tracingStarted = isTracingStarted();
     if (tracingStarted) {
       try {
         if (success) {
@@ -121,11 +126,18 @@ public abstract class BaseUiTest {
       }
     }
 
-    if (context != null) context.close();
+    try {
+      if (context != null) context.close();
+    } finally {
+      // Important: cleanup ThreadLocal to avoid leaks in thread pools.
+      pageHolder.remove();
+      contextHolder.remove();
+      tracingStartedHolder.remove();
+    }
   }
 
   protected void loginSeed() {
-    new LoginPage(page)
+    new LoginPage(page())
       .open()
       .loginAs(TestConfig.seedEmail(), TestConfig.seedPassword());
   }
@@ -135,15 +147,15 @@ public abstract class BaseUiTest {
   }
 
   public final Page page() {
-    return page;
+    return pageHolder.get();
   }
 
   public final BrowserContext context() {
-    return context;
+    return contextHolder.get();
   }
 
   public final boolean isTracingStarted() {
-    return tracingStarted;
+    return Boolean.TRUE.equals(tracingStartedHolder.get());
   }
 
   private static Path artifactDir(ITestResult result) {

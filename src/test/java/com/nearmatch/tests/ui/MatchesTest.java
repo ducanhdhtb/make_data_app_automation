@@ -17,25 +17,25 @@ public class MatchesTest extends BaseUiTest {
 
   @Test
   void matchesPageRendersHeading() {
-    MatchesPage matches = new MatchesPage(page).open();
+    MatchesPage matches = new MatchesPage(page()).open();
     assertTrue(matches.heading().isVisible());
   }
 
   @Test
   void matchesPageShowsEmptyStateOrMatchList() {
-    MatchesPage matches = new MatchesPage(page).open();
+    MatchesPage matches = new MatchesPage(page()).open();
     matches.heading().waitFor();
 
     // Wait a bit for content to load
-    page.waitForTimeout(1000);
+    page().waitForTimeout(1000);
 
     // Either a match card or the empty-state message must be present
     boolean hasMatches = matches.messageButtons().count() > 0;
-    boolean hasEmptyState = page.locator("text=/Chưa có match|Không có match|chưa có người|không tìm thấy/i").count() > 0;
-    boolean hasLoadingOrContent = page.locator("body").textContent().length() > 100;
+    boolean hasEmptyState = page().locator("text=/Chưa có match|Không có match|chưa có người|không tìm thấy/i").count() > 0;
+    boolean hasLoadingOrContent = page().locator("body").textContent().length() > 100;
     
     assertTrue(hasMatches || hasEmptyState || hasLoadingOrContent, 
-      "Expected match list or empty state, page content: " + page.locator("body").textContent().substring(0, Math.min(200, page.locator("body").textContent().length())));
+      "Expected match list or empty state, page content: " + page().locator("body").textContent().substring(0, Math.min(200, page().locator("body").textContent().length())));
   }
 
   @Test
@@ -49,7 +49,7 @@ public class MatchesTest extends BaseUiTest {
 
   @Test
   void bottomNavIsVisible() {
-    MatchesPage matches = new MatchesPage(page).open();
+    MatchesPage matches = new MatchesPage(page()).open();
     assertTrue(matches.bottomNavMatches().isVisible());
   }
 }

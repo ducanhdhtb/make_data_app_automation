@@ -17,20 +17,20 @@ public class NotificationsTest extends BaseUiTest {
 
   @Test
   void notificationsPageRendersHeading() {
-    NotificationsPage notif = new NotificationsPage(page).open();
+    NotificationsPage notif = new NotificationsPage(page()).open();
     assertTrue(notif.heading().isVisible());
   }
 
   @Test
   void notificationsPageHasReloadAndMarkReadButtons() {
-    NotificationsPage notif = new NotificationsPage(page).open();
+    NotificationsPage notif = new NotificationsPage(page()).open();
     assertTrue(notif.reloadButton().isVisible());
     assertTrue(notif.markReadButton().isVisible());
   }
 
   @Test
   void notificationsPageShowsItemsOrEmptyState() {
-    NotificationsPage notif = new NotificationsPage(page).open();
+    NotificationsPage notif = new NotificationsPage(page()).open();
 
     // Wait for loading to finish
     notif.heading().waitFor();
@@ -42,7 +42,7 @@ public class NotificationsTest extends BaseUiTest {
 
   @Test
   void markAllReadButtonWorks() {
-    NotificationsPage notif = new NotificationsPage(page).open();
+    NotificationsPage notif = new NotificationsPage(page()).open();
     notif.heading().waitFor();
     notif.markAllReadAcceptDialog();
 
@@ -61,15 +61,15 @@ public class NotificationsTest extends BaseUiTest {
 
   @Test
   void notificationBadgeVisibleInNavbar() {
-    page.navigate("/notifications");
-    page.waitForSelector("h1:has-text('Thông báo')");
+    page().navigate("/notifications");
+    page().waitForSelector("h1:has-text('Thông báo')");
     
     // Check if notification link/button exists in navbar or page
     // Could be a link, button, or icon
-    boolean hasNotifLink = page.locator("a[href*='notification']").count() > 0;
-    boolean hasNotifButton = page.locator("button:has-text('Thông báo')").count() > 0;
-    boolean hasNotifIcon = page.locator("[class*='notification'], [class*='bell']").count() > 0;
-    boolean onNotifPage = page.url().contains("/notifications");
+    boolean hasNotifLink = page().locator("a[href*='notification']").count() > 0;
+    boolean hasNotifButton = page().locator("button:has-text('Thông báo')").count() > 0;
+    boolean hasNotifIcon = page().locator("[class*='notification'], [class*='bell']").count() > 0;
+    boolean onNotifPage = page().url().contains("/notifications");
     
     // If we're on notifications page, that means navigation worked
     assertTrue(onNotifPage || hasNotifLink || hasNotifButton || hasNotifIcon,
