@@ -1,0 +1,17 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd" >
+<suite name="regression" verbose="1">
+  <!-- Full regression: UI + API packages. -->
+
+  <test name="api">
+    <packages>
+      <package name="com.nearmatch.tests.api"/>
+    </packages>
+  </test>
+
+  <test name="ui">
+    <packages>
+      <package name="com.nearmatch.tests.ui"/>
+    </packages>
+  </test>
+</suite>
+

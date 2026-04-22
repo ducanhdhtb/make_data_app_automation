@@ -30,6 +30,14 @@ Run via `testng.xml` suite:
 mvn clean test -Psuite
 ```
 
+Run suites:
+
+```bash
+mvn clean test -Psmoke
+mvn clean test -Pregression
+mvn clean test -Pe2e
+```
+
 Run a single test class:
 
 ```bash
